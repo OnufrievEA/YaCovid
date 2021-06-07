@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">YaCovid</string>
+    <string name="confirmed_count">Число подтвержденных случаев</string>
+    <string name="recovered_count">Число выздоровевших</string>
+    <string name="deaths_count">Число смертей</string>
+    <string name="update_date">Обновлено</string>
+</resources>
