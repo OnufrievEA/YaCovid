@@ -5,21 +5,27 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.yacovid.CountryApp
 import com.example.yacovid.R
-import com.example.yacovid.data.network.Api
-import com.example.yacovid.data.network.RetrofitInit
-import com.example.yacovid.data.repository.CountryRepositoryImpl
-import com.example.yacovid.domain.repository.CountryRepository
-import com.example.yacovid.domain.usecase.CountryInteractor
+import com.example.yacovid.di.components.DaggerCountryListComponent
+import com.example.yacovid.di.components.DaggerNetworkComponent
+import com.example.yacovid.di.modules.CountryListModule
 import com.example.yacovid.presentation.screens.detail.CountryDetailFragment
+import javax.inject.Inject
 
 class CountryListFragment : Fragment(), CountryAdapter.Listener {
 
-    private lateinit var adapter: CountryAdapter
-    lateinit var viewModel: CountryViewModel
+    private lateinit var countryViewModel: CountryViewModel
+
+    @Inject
+    lateinit var recyclerView: RecyclerView
+
+    @Inject
+    lateinit var adapter: CountryAdapter
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,31 +38,28 @@ class CountryListFragment : Fragment(), CountryAdapter.Listener {
     ): View? {
         val root = inflater.inflate(R.layout.fragment_country_list, container, false)
         initRecycleView(root)
+        countryViewModel.getCountryLiveData()
+            .observe(viewLifecycleOwner) { data -> adapter.setList(data) }
         return root
     }
 
-    override fun onStart() {
-        super.onStart()
-        viewModel.countryLiveData.observe(this) { data -> adapter.setList(data) }
-    }
-
-
-
     private fun initViewModel() {
-        val api: Api = RetrofitInit.newApiInstance()
-        val repository: CountryRepository = CountryRepositoryImpl(api)
-        val interactor = CountryInteractor(repository)
-        viewModel = ViewModelProvider(this, CountryViewModelFactory(interactor))
-            .get(CountryViewModel::class.java)
-        lifecycle.addObserver(viewModel)
+        val component = DaggerNetworkComponent.builder()
+            .applicationComponent(
+                (activity?.application as CountryApp)
+                    .getAppComponent()
+            )
+            .build()
+
+        countryViewModel = ViewModelProvider(this).get(CountryViewModel::class.java)
+        component.inject(countryViewModel)
     }
 
     private fun initRecycleView(root: View) {
-        adapter = CountryAdapter()
-        adapter.listener = this
-        val rv = root.findViewById<RecyclerView>(R.id.rv_articles)
-        rv.layoutManager = LinearLayoutManager(requireActivity())
-        rv.adapter = adapter
+        val countryListComponent = DaggerCountryListComponent.builder()
+            .countryListModule(CountryListModule(this, root, requireContext()))
+            .build()
+        countryListComponent.inject(this)
     }
 
     override fun onClick(position: Int) {
@@ -66,8 +69,8 @@ class CountryListFragment : Fragment(), CountryAdapter.Listener {
         args.putParcelable(detailFragment.COUNTRY, adapter.countryList[position])
         detailFragment.arguments = args
         transaction.replace(R.id.container, detailFragment)
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
         transaction.addToBackStack(null)
         transaction.commit()
     }
-
 }

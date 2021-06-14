@@ -1,13 +1,18 @@
 package com.example.yacovid.presentation.screens.detail
 
+import android.app.Application
 import android.graphics.Color
-import android.util.Log
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
+import com.example.yacovid.R
 import com.example.yacovid.domain.model.Country
+import javax.inject.Inject
 
-class CountryDetailViewModel(val country: Country) : ViewModel() {
+class CountryDetailViewModel(application: Application) : AndroidViewModel(application) {
 
-    val urlLoad = "https://www.countryflags.io/${country.code}/flat/64.png"
+    @Inject
+    lateinit var country: Country
+
+    val urlLoad by lazy { "https://www.countryflags.io/${country.code}/flat/64.png" }
 
     fun getConfirmedColor(): Int {
         return if (country.confirmed > 10000) Color.RED
@@ -24,14 +29,9 @@ class CountryDetailViewModel(val country: Country) : ViewModel() {
         else Color.BLACK
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        Log.d("AAA", "onCleared: ")
-    }
-
     fun convert(date: String?): String {
         return if (date == null) {
-            "Нет данных"
+            getApplication<Application>().applicationContext.getString(R.string.no_data)
         } else {
             val sb = StringBuilder(date)
             sb.removeRange(16, sb.length).replaceRange(10, 11, " ").toString()

@@ -2,6 +2,7 @@ package com.example.yacovid.presentation
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentTransaction
 import com.example.yacovid.R
 import com.example.yacovid.presentation.screens.main.CountryListFragment
 
@@ -15,6 +16,7 @@ class MainActivity : AppCompatActivity() {
             val transaction = supportFragmentManager.beginTransaction()
             val countryListFragment = CountryListFragment()
             transaction.replace(R.id.container, countryListFragment)
+            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
             transaction.commit()
         }
     }

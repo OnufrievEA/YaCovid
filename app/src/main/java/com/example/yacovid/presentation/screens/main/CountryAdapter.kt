@@ -11,16 +11,16 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.yacovid.R
 import com.example.yacovid.domain.model.Country
+import javax.inject.Inject
 
-class CountryAdapter : RecyclerView.Adapter<CountryAdapter.ViewHolder>() {
+class CountryAdapter @Inject constructor(private val listener: Listener) :
+    RecyclerView.Adapter<CountryAdapter.ViewHolder>() {
 
     interface Listener {
         fun onClick(position: Int)
     }
 
-    var listener: Listener? = null
-
-    val countryList = mutableListOf<Country>()
+    val countryList = ArrayList<Country>()
 
     fun setList(data: List<Country>) {
         countryList.clear()
@@ -37,7 +37,7 @@ class CountryAdapter : RecyclerView.Adapter<CountryAdapter.ViewHolder>() {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(countryList[position])
         holder.itemView.findViewById<CardView>(R.id.card_view).setOnClickListener {
-            listener?.onClick(position)
+            listener.onClick(position)
         }
     }
 
